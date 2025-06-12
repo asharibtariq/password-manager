@@ -1,14 +1,24 @@
 from cryptography.fernet import Fernet
+import json
+import os
 
-# You should store this key securely in environment variables
-ENCRYPTION_KEY = Fernet.generate_key()
-cipher = Fernet(ENCRYPTION_KEY)
+# Load or generate key
+KEY_FILE = "secret.key"
 
-def encrypt_vault(data_dict):
-    import json
-    plaintext = json.dumps(data_dict).encode()
-    return cipher.encrypt(plaintext).decode()
+if not os.path.exists(KEY_FILE):
+    with open(KEY_FILE, "wb") as f:
+        f.write(Fernet.generate_key())
 
-def decrypt_vault(encrypted_str):
-    decrypted = cipher.decrypt(encrypted_str.encode())
-    return decrypted.decode()
+with open(KEY_FILE, "rb") as f:
+    key = f.read()
+
+cipher = Fernet(key)
+
+def encrypt_vault(vault_data):
+    json_data = json.dumps(vault_data)
+    encrypted = cipher.encrypt(json_data.encode())
+    return encrypted.decode()
+
+def decrypt_vault(encrypted_data):
+    decrypted = cipher.decrypt(encrypted_data.encode()).decode()
+    return json.loads(decrypted)
