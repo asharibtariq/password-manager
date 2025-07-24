@@ -1,18 +1,14 @@
-# vault_crypto.py
 from cryptography.fernet import Fernet
+from dotenv import load_dotenv
 import os
 
-KEY_FILE = "secret.key"
+load_dotenv()  # Loads variables from .env
 
-def load_key():
-    if not os.path.exists(KEY_FILE):
-        with open(KEY_FILE, "wb") as f:
-            f.write(Fernet.generate_key())
-    with open(KEY_FILE, "rb") as f:
-        return f.read()
+fernet_key = os.getenv("FERNET_KEY")
+if not fernet_key:
+    raise ValueError("FERNET_KEY not found in .env!")
 
-key = load_key()
-fernet = Fernet(key)
+fernet = Fernet(fernet_key.encode())
 
 def encrypt_password(password: str) -> str:
     return fernet.encrypt(password.encode()).decode()
